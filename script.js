@@ -3,20 +3,30 @@ console.log("hi");
 
 const body = document.body;
 
-HTMLBodyElement.prototype.c = () => {
-
+HTMLElement.prototype.c = DocumentFragment.prototype.c = function (...indices) {
+	return indices.reduce((prev, curr) => prev.childNodes[curr], this);
 };
 
+// HTMLElement.prototype.r = function () {
+// 	this.remove();
+// 	return this;
+// }
+
+HTMLElement.prototype.e = function () {
+	this.innerHTML = "";
+	return this;
+}
+
 {
-	const increaseButton = body.childNodes[1];
+	const increaseButton = body.c(1);
 
-	const decreaseButton = body.childNodes[3];
+	const decreaseButton = body.c(3);
 
-	const paragraph = body.childNodes[5];
+	const paragraphTemplate = body.c(5);
 
-	const ul = body.childNodes[7];
+	const ul = body.c(11);
 
-	const liTemplate = ul.childNodes[1];
+	const liTemplate = ul.c(1);
 
 	const count = {
 		__: 5,
@@ -25,21 +35,22 @@ HTMLBodyElement.prototype.c = () => {
 		},
 		set _(value) {
 			this.__ = value;
-			paragraph.hidden = value <= 10;
-			increaseButton.childNodes[2].textContent = value.toString();
-			decreaseButton.childNodes[2].textContent = value.toString();
-			paragraph.childNodes[2].textContent = value.toString();
+			if (value > 10) {
+				body.c(8).replaceWith(paragraphTemplate.content.cloneNode(true).c(1));
+				// body.c(8).replaceWith(paragraphTemplate.content.cloneNode(true).children);
+				// body.c(8, 2).textContent = value.toString();
+			} else {
+				body.c(8).replaceWith(document.createTextNode(""));
+			}
+			increaseButton.c(2).textContent = value.toString();
+			decreaseButton.c(2).textContent = value.toString();
 
-			ul.innerHTML = "";
+			ul.e();
 
 			for (let i = 0; i < value; i++) {
-				// const li = liTemplate.cloneNode(true);
-				// li.textContent = i.toString();
-				// ul.appendChild(li);
-
 				const newFragment = liTemplate.content.cloneNode(true);
 
-				newFragment.childNodes[1].childNodes[0].textContent = i.toString();
+				newFragment.c(1, 0).textContent = i.toString();
 
 				ul.appendChild(newFragment);
 			}
