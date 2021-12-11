@@ -8,6 +8,14 @@
 		},
 	});
 
+	// Object.defineProperty(HTMLElement.prototype, "on", {
+	// 	get() {
+	// 		return this.addEventListener;
+	// 	},
+	// });
+
+	HTMLElement.prototype.on = function (...args: any[]) { return this.addEventListener(...args) };
+
 	const getNode = (() => {
 		const recursiveElementTree = (node: Node): any => {
 			let branch: any = node;
@@ -26,22 +34,40 @@
 		);
 	})();
 
-	const createVariable = (initialValue: any, reactivity: any) => {
+	const createVariable = (initialValue: any) => {
 		let value: any = initialValue;
 
+		let values: [number[], () => any][] = [];
+
+		let callbackFunctions: (() => any)[] = [];
+
 		const update = () => {
-			for (const [path, computation] of Object.entries(reactivity(value))) {
-				const node = getNode(...path.split(","));
+
+			for (const [path, valueFunction] of values) {
+				const node = getNode(...path);
 
 				if (node) {
-					node.textContent = computation;
+					node.textContent = valueFunction();
 				}
+			}
+
+			for (const callbackFunction of callbackFunctions) {
+				callbackFunction();
 			}
 		};
 
-		setTimeout(update);
+		window.setTimeout(update);
 
 		return {
+			$(updateFunction: () => any, ...path: number[]) {
+				if (path.length) {
+					values.push([path, updateFunction]);
+				} else {
+					callbackFunctions.push(updateFunction);
+				}
+
+				return [updateFunction, ...path];
+			},
 			get _() {
 				return value;
 			},
@@ -53,41 +79,67 @@
 		}
 	};
 	{
-		let count = createVariable(5, (newValue: any) => ({
-			[[1, 0, 2]]: (newValue),
-			[[1, 1, 2]]: (newValue),
-			[[1, 4, 2]]: (newValue),
-			[[1, 4, 10]]: (newValue * secondCount._),
-		}));
+		// let count = createVariable(5, (newValue: any) => ({
+		// 	[[1, 0, 2]]: (newValue),
+		// 	[[1, 1, 2]]: (newValue),
+		// 	[[1, 4, 2]]: (newValue),
+		// 	[[1, 4, 10]]: (newValue * secondCount._),
+		// }));
 
-		let secondCount = createVariable(10, (newValue: any) => ({
-			[[1, 2, 2]]: (newValue),
-			[[1, 3, 2]]: (newValue),
-			[[1, 4, 6]]: (newValue),
-			[[1, 4, 10]]: (newValue * count._),
-		}));
+		// let secondCount = createVariable(10, (newValue: any) => ({
+		// 	[[1, 2, 2]]: (newValue),
+		// 	[[1, 3, 2]]: (newValue),
+		// 	[[1, 4, 6]]: (newValue),
+		// 	[[1, 4, 10]]: (newValue * count._),
+		// }));
+
+		let count = createVariable(5);
+
+		let secondCount = createVariable(10);
 
 		console.log(count._, secondCount._);
 
 		{
-			getNode(1, 0).addEventListener("click", () => {
+			count.$(() => count._, 1, 0, 2);
+
+			getNode(1, 0).on("click", () => {
 				count._++;
 			});
 		}
 		{
-			getNode(1, 1).addEventListener("click", () => {
+			count.$(() => count._, 1, 1, 2);
+
+			getNode(1, 1).on("click", () => {
 				count._--;
 			});
 		}
 		{
-			getNode(1, 2).addEventListener("click", () => {
+			secondCount.$(() => secondCount._, 1, 2, 2);
+
+			getNode(1, 2).on("click", () => {
 				secondCount._++;
 			});
 		}
 		{
-			getNode(1, 3).addEventListener("click", () => {
+			secondCount.$(() => secondCount._, 1, 3, 2);
+
+			getNode(1, 3).on("click", () => {
 				secondCount._--;
 			});
+		}
+		{
+			count.$(() => count._, 1, 4, 2);
+			secondCount.$(() => secondCount._, 1, 4, 6);
+			count.$(...secondCount.$(() => count._ * secondCount._, 1, 4, 10));
+		}
+		{
+			// {
+			// 	count.$(...secondCount.$(() => {
+			// 		if (count._ > secondCount._) {
+
+			// 		}
+			// 	}));
+			// }
 		}
 	}
 

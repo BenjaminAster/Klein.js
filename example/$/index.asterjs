@@ -34,10 +34,10 @@
 			# {count} * {secondCount} = {count * secondCount}
 		</p>
 
-		if (count > 10) {
-			<p>The count (<!>5<!>) is over 10!</p>
+		if (count > secondCount) {
+			<p>The first count ({count}) is greater than the second count ({secondCount}).</p>
 		}
-		
+
 		<ul>
 			for (let i = 0; i < count; i++) {
 				<li>{i}.</li>
