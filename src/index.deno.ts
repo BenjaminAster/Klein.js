@@ -13,17 +13,38 @@ import { rollup } from "https://deno.land/x/drollup@2.58.0+0.20.0/mod.ts";
 		input: "./.asterjs/script.ts",
 		output: {
 			format: "es" as const,
+			sourcemap: true,
 		},
 		plugins: [
 			// virtual({
 			// 	main: typeScript,
 			// }),
-			terser(),
+			terser({
+				compress: {
+					// dead_code: false,
+					// directives: false,
+					// evaluate: false,
+					// expression: true,
+					// inline: false,
+					// pure_getters: false,
+					// side_effects: false,
+					// unused: false,
+				},
+			}),
 		],
 	};
 	const bundle = (await rollup(options));
-	const javaScript: string = (await bundle.generate(options.output)).output[0].code;
+	const output = await bundle.generate(options.output);
+	const javaScript: string = output.output[0].code;
+	const map: string = "data:application/javascript," + globalThis.encodeURI(
+		JSON.stringify({
+			...output.output[0].map,
+			sourcesContent: undefined,
+			sources: ["../$/.asterjs/script.ts"],
+			names: undefined,
+		})
+	);
 	await bundle.close();
 
-	await Deno.writeTextFile("../_/script.js", javaScript);
+	await Deno.writeTextFile("../_/script.js", javaScript + "//# sourceMappingURL=" + map);
 })();

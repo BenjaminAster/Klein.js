@@ -12,14 +12,27 @@
 
 	<body>
 		let count: number = 5;
+		let secondCount: number = 10;
 
-		<button>
-			# Increase counter ({count})
+		<button on:click={() => count++}>
+			# Increase first counter ({count})
 		</button>
 
-		<button>
-			# Decrease counter ({count})
+		<button on:click={() => count--}>
+			# Decrease first counter ({count})
 		</button>
+
+		<button on:click={() => secondCount++}>
+			# Increase second counter ({secondCount})
+		</button>
+
+		<button on:click={() => secondCount--}>
+			# Decrease second counter ({secondCount})
+		</button>
+
+		<p>
+			# {count} * {secondCount} = {count * secondCount}
+		</p>
 
 		if (count > 10) {
 			<p>The count (<!>5<!>) is over 10!</p>
