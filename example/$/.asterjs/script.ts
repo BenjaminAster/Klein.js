@@ -6,6 +6,12 @@
 	const head: HTMLHeadElement = document.head;
 	const body: HTMLBodyElement = document.body;
 
+	Object.defineProperty(HTMLTemplateElement.prototype, "childNodes", {
+		get() {
+			return this.content.childNodes;
+		},
+	});
+
 	const getNode = (() => {
 		const recursiveElementTree = (node: Node): any => {
 			let branch: any = node;
@@ -24,13 +30,8 @@
 		);
 	})();
 
-	HTMLElement.prototype.c = DocumentFragment.prototype.c = function (...indices: number[]) {
-		return indices.reduce((prev, curr) => prev.childNodes[curr], this);
-	};
-
-	HTMLElement.prototype.e = function () {
-		this.innerHTML = "";
-		return this;
+	{
+		
 	}
 
 	// {
