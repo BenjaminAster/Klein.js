@@ -2,10 +2,6 @@
 // @ts-nocheck
 
 (async () => {
-	const root: HTMLHtmlElement = document.documentElement;
-	const head: HTMLHeadElement = document.head;
-	const body: HTMLBodyElement = document.body;
-
 	Object.defineProperty(HTMLTemplateElement.prototype, "childNodes", {
 		get() {
 			return this.content.childNodes;
@@ -31,7 +27,9 @@
 	})();
 
 	{
-		
+		console.log(
+			getNode(1, 2, 0),
+		);
 	}
 
 	// {

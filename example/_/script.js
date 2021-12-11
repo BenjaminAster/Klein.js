@@ -1,1 +1,1 @@
-(async()=>{Object.defineProperty(HTMLTemplateElement.prototype,"childNodes",{get(){return this.content.childNodes}}),(()=>{const e=t=>{let n=t;for(const[o,c]of[...t.childNodes].entries())n[o]=e(c);return n},t=e(document.documentElement)})()})();
+(async()=>{Object.defineProperty(HTMLTemplateElement.prototype,"childNodes",{get(){return this.content.childNodes}});const e=(()=>{const e=t=>{let o=t;for(const[n,c]of[...t.childNodes].entries())o[n]=e(c);return o},t=e(document.documentElement);return(...e)=>e.reduce((e,t)=>e[t],t)})();console.log(e(1,2,0))})();
