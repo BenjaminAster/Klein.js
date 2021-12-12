@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build",
+			"type": "shell",
+			"command": "deno run --unstable --allow-read --allow-write --allow-net --no-check ../../src/index.deno.ts",
+			"group": {
+				"kind": "build",
+				"isDefault": true,
+			},
+			"options": {
+				"cwd": "./example/$/",
+			},
+		},
+	],
+}

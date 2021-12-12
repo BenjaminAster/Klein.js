@@ -5,6 +5,12 @@ import { virtual } from "https://deno.land/x/drollup@2.42.3%2B0.17.1/plugins/vir
 
 import { rollup } from "https://deno.land/x/drollup@2.58.0+0.20.0/mod.ts";
 
+/* 
+
+deno run --unstable --allow-read --allow-write --allow-net --no-check ../../src/index.deno.ts
+
+*/
+
 (async () => {
 	const typeScript: string = await Deno.readTextFile("./.asterjs/script.ts");
 

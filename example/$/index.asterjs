@@ -34,15 +34,8 @@
 			# {count} * {secondCount} = {count * secondCount}
 		</p>
 
-		if (count > secondCount) {
-			<p>The first count ({count}) is greater than the second count ({secondCount}).</p>
+		for (let i = 0; i < count; i++) {
+			<div> &bull; {i}.</div>
 		}
-
-		<ul>
-			for (let i = 0; i < count; i++) {
-				<li>{i}.</li>
-				<li>another li element (count is {count})</li>
-			}
-		</ul>
 	</body>
 </html>
