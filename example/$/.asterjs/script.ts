@@ -32,9 +32,13 @@
 		const elementTree = recursiveElementTree(document.documentElement);
 
 		return (...path: number[]): Node => (
-			path.reduce((tree: any, index: number) => tree?.[index], elementTree)._
+			path.reduce((tree: any, index: number) => tree?.[index], elementTree)?._
 		);
 	})();
+
+	const _A_nodeIndex = ((node: Node): number => (
+		[...node.parentNode.childNodes].indexOf(node)
+	));
 
 	const _A_createVariable = (initialValue: any) => {
 		let value: any = initialValue;
@@ -42,6 +46,8 @@
 		let values: [number[], () => any][] = [];
 
 		let callbackFunctions: (() => any)[] = [];
+
+		let loopFunctions: ((generator: any) => any)[] = [];
 
 		const update = () => {
 
@@ -56,12 +62,55 @@
 			for (const callbackFunction of callbackFunctions) {
 				callbackFunction();
 			}
+
+			for (const [
+				path,
+				loopFunction,
+				getLoopElementsRange,
+				firstItemFragment,
+			] of loopFunctions) {
+
+				const loopNodes = [..._A_getNode(...path).childNodes].slice(
+					...getLoopElementsRange()
+				);
+
+				for (const node of loopNodes) {
+					node.remove();
+				}
+
+				const fragment = new DocumentFragment();
+
+				loopFunction(
+					(function* () {
+						while (true) {
+							yield ((fragmentFunction: (setValueInFragment: any) => any) => {
+								const itemFragment = firstItemFragment.cloneNode(true);
+								fragmentFunction(
+									(value: any, ...fragmentPath: number[]) => {
+										fragmentPath.reduce(
+											(fragment: any, index: number) => fragment.childNodes?.[index],
+											itemFragment
+										).textContent = value;
+									}
+								);
+								fragment.append(itemFragment);
+							});
+						}
+					})()
+				);
+
+				const endComment: Node = _A_getNode(...path).childNodes[
+					getLoopElementsRange()[1]
+				];
+
+				endComment.parentNode.insertBefore(fragment, endComment);
+			}
 		};
 
-		window.setTimeout(update);
-
 		return {
-			$(updateFunction: () => any, ...path: number[]) {
+			$(updateFunction?: () => any, ...path: number[]) {
+				if (!updateFunction) return update();
+
 				if (path.length) {
 					values.push([path, updateFunction]);
 				} else {
@@ -69,6 +118,51 @@
 				}
 
 				return [updateFunction, ...path];
+			},
+			f(
+				loopFunction: (generator: any) => any,
+				startCommentIndex: number,
+				firstItemLength: number,
+				endCommentIndex: number,
+				...path: number[]
+			) {
+				// const loopNodes = [..._A_getNode(...path).childNodes].slice(
+				// 	startCommentIndex + 1, endCommentIndex
+				// );
+				// const firstItemNodes = loopNodes.slice(0, firstItemLength).map(
+				// 	(node) => node.cloneNode(true)
+				// );
+
+				// for (const node of loopNodes) {
+				// 	node.remove();
+				// }
+
+				// loopFunctions.push([path, loopFunction]);
+
+				const getLoopElementsRange = () => ([startCommentIndex, endCommentIndex].map(
+					(index: number, i: number) => (_A_nodeIndex(_A_getNode(...path, index)) + 1 - i)
+				));
+
+				const firstItemFragment: DocumentFragment = new DocumentFragment();
+
+				firstItemFragment.append(...[..._A_getNode(...path).childNodes].slice(
+					...getLoopElementsRange()
+				).slice(0, firstItemLength).map((node: Node) => node.cloneNode(true)));
+
+				loopFunctions.push([
+					path,
+					loopFunction,
+					getLoopElementsRange,
+					firstItemFragment,
+				])
+
+				return [
+					loopFunction,
+					startCommentIndex,
+					firstItemLength,
+					endCommentIndex,
+					...path,
+				];
 			},
 			get _() {
 				return value;
@@ -81,42 +175,39 @@
 		}
 	};
 
-	const _A_forLoop = (
-		startCommentIndex: number,
-		firstItemLength: number,
-		endCommentIndex: number,
-		...path: number[]
-	) => {
+	// const _A_forLoop = (
+	// 	startCommentIndex: number,
+	// 	firstItemLength: number,
+	// 	endCommentIndex: number,
+	// 	...path: number[]
+	// ) => {
 
-		const loopNodes = [..._A_getNode(...path).childNodes].slice(
-			startCommentIndex + 1, endCommentIndex
-		);
-		const firstItemNodes = loopNodes.slice(0, firstItemLength);
+	// 	const loopNodes = [..._A_getNode(...path).childNodes].slice(
+	// 		startCommentIndex + 1, endCommentIndex
+	// 	);
+	// 	const firstItemNodes = loopNodes.slice(0, firstItemLength);
 
-		for (const node of loopNodes) {
-			node.remove();
-		}
+	// 	for (const node of loopNodes) {
+	// 		node.remove();
+	// 	}
 
-		return (loopFunction: (generator: any) => void) => {
-			loopFunction(
-				(function* () {
-					while (true) {
-						yield ((value: number) => {
-							console.log(value);
-						});
-					}
-				})()
-			)
-		};
+	// 	return (loopFunction: (generator: any) => void) => {
+	// 		loopFunction(
+	// 			(function* () {
+	// 				while (true) {
+	// 					yield ((value: number) => {
+	// 						console.log(value);
+	// 					});
+	// 				}
+	// 			})()
+	// 		)
+	// 	};
 
-	};
+	// };
 
 	{
 		let count = _A_createVariable(5);
-
 		let secondCount = _A_createVariable(0);
-
-		console.log(count._, secondCount._);
 
 		{
 			count.$(() => count._, 1, 0, 2);
@@ -152,13 +243,25 @@
 			count.$(...secondCount.$(() => count._ * secondCount._, 1, 4, 10));
 		}
 		{
-			_A_forLoop(5, 1, 11, 1)((generator: any) => {
-				for (let i = 0; i < count._; i++) {
-					generator.next().value();
-				}
-				generator.return();
-			});
+			count.f(...secondCount.f(
+				(generator: any) => {
+					for (let i: number = 2; i < count._ + secondCount._; i++) {
+						generator.next().value((setValueInFragment: any) => {
+							setValueInFragment(i, 0, 2);
+						});
+					}
+				},
+				5, 1, 11, 1
+			));
 		}
+		// {
+		// 	_A_forLoop(5, 1, 11, 1)((generator: any) => {
+		// 		for (let i = 0; i < count._; i++) {
+		// 			generator.next().value();
+		// 		}
+		// 		generator.return();
+		// 	});
+		// }
 		// {
 		// 	{
 		// 		count.$(...secondCount.$(() => {
@@ -168,5 +271,8 @@
 		// 		}));
 		// 	}
 		// }
+
+		count.$();
+		secondCount.$();
 	}
 })();

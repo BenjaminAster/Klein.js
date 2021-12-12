@@ -34,7 +34,7 @@
 			# {count} * {secondCount} = {count * secondCount}
 		</p>
 
-		for (let i = 0; i < count; i++) {
+		for (let i: number = 2; i < count + secondCount; i++) {
 			<div> &bull; {i}.</div>
 		}
 	</body>
