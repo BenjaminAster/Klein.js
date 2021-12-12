@@ -2,12 +2,6 @@
 // @ts-nocheck
 
 (async () => {
-	// Object.defineProperty(HTMLTemplateElement.prototype, "childNodes", {
-	// 	get() {
-	// 		return this.content.childNodes;
-	// 	},
-	// });
-
 	HTMLElement.prototype.on = function (...args: any[]) { return this.addEventListener(...args) };
 
 	const _A_getNode = (() => {
@@ -31,64 +25,63 @@
 
 		const elementTree = recursiveElementTree(document.documentElement);
 
-		return (...path: number[]): Node => (
-			path.reduce((tree: any, index: number) => tree?.[index], elementTree)?._
+		const reduceFunction = (path: number[]) => path.reduce(
+			(tree: any, index: number) => tree?.[index], elementTree
 		);
-	})();
 
-	const _A_nodeIndex = ((node: Node): number => (
-		[...node.parentNode.childNodes].indexOf(node)
-	));
+		return (...path: number[]): Node => {
+			if (path.length) {
+				return reduceFunction(path)?._;
+			} else {
+				return (...path: number[]) => reduceFunction(path);
+			}
+		};
+	})();
 
 	const _A_createVariable = (initialValue: any) => {
 		let value: any = initialValue;
 
 		let values: [number[], () => any][] = [];
 
-		let callbackFunctions: (() => any)[] = [];
-
-		let loopFunctions: ((generator: any) => any)[] = [];
+		let updateFunctions: ((generator: any) => any)[] = [];
 
 		const update = () => {
-
 			for (const [path, valueFunction] of values) {
 				const node = _A_getNode(...path);
 
-				if (node) {
+				if (node?.nodeName === "#comment") {
+
+				} else if (node) {
 					node.textContent = valueFunction();
 				}
 			}
 
-			for (const callbackFunction of callbackFunctions) {
-				callbackFunction();
-			}
-
 			for (const [
 				path,
-				loopFunction,
-				getLoopElementsRange,
+				updateFunction,
+				getElementsRange,
 				firstItemFragment,
-			] of loopFunctions) {
+			] of updateFunctions) {
 
-				const loopNodes = [..._A_getNode(...path).childNodes].slice(
-					...getLoopElementsRange()
+				const nodes = [..._A_getNode(...path).childNodes].slice(
+					...getElementsRange()
 				);
 
-				for (const node of loopNodes) {
+				for (const node of nodes) {
 					node.remove();
 				}
 
 				const fragment = new DocumentFragment();
 
-				loopFunction(
+				updateFunction(
 					(function* () {
 						while (true) {
-							yield ((fragmentFunction: (setValueInFragment: any) => any) => {
+							yield ((fragmentFunction?: (setValueInFragment: any) => any) => {
 								const itemFragment = firstItemFragment.cloneNode(true);
-								fragmentFunction(
+								fragmentFunction?.(
 									(value: any, ...fragmentPath: number[]) => {
 										fragmentPath.reduce(
-											(fragment: any, index: number) => fragment.childNodes?.[index],
+											(fragment: any, index: number) => fragment?.childNodes?.[index],
 											itemFragment
 										).textContent = value;
 									}
@@ -100,7 +93,7 @@
 				);
 
 				const endComment: Node = _A_getNode(...path).childNodes[
-					getLoopElementsRange()[1]
+					getElementsRange()[1]
 				];
 
 				endComment.parentNode.insertBefore(fragment, endComment);
@@ -111,56 +104,50 @@
 			$(updateFunction?: () => any, ...path: number[]) {
 				if (!updateFunction) return update();
 
-				if (path.length) {
-					values.push([path, updateFunction]);
-				} else {
-					callbackFunctions.push(updateFunction);
-				}
+				values.push([path, updateFunction]);
 
 				return [updateFunction, ...path];
 			},
-			f(
-				loopFunction: (generator: any) => any,
+			$$(
+				updateFunction: (generator: any) => any,
 				startCommentIndex: number,
 				firstItemLength: number,
-				endCommentIndex: number,
-				...path: number[]
+				itemLength: number,
+				...path: number[],
 			) {
-				// const loopNodes = [..._A_getNode(...path).childNodes].slice(
-				// 	startCommentIndex + 1, endCommentIndex
-				// );
-				// const firstItemNodes = loopNodes.slice(0, firstItemLength).map(
-				// 	(node) => node.cloneNode(true)
-				// );
+				const containerNodeObject = _A_getNode()(...path);
 
-				// for (const node of loopNodes) {
-				// 	node.remove();
-				// }
-
-				// loopFunctions.push([path, loopFunction]);
-
-				const getLoopElementsRange = () => ([startCommentIndex, endCommentIndex].map(
-					(index: number, i: number) => (_A_nodeIndex(_A_getNode(...path, index)) + 1 - i)
+				const getNodeIndex = ((node: Node): number => (
+					[...node.parentNode.childNodes].indexOf(node)
 				));
+
+				const getElementsRange = () => ([
+					startCommentIndex,
+					startCommentIndex + itemLength + 1
+				].map(
+					(index: number, i: number) => (getNodeIndex(containerNodeObject[index]._) + 1 - i)
+				));
+
+				_A_getNode(...path, startCommentIndex).data = itemLength;
 
 				const firstItemFragment: DocumentFragment = new DocumentFragment();
 
 				firstItemFragment.append(...[..._A_getNode(...path).childNodes].slice(
-					...getLoopElementsRange()
+					...getElementsRange()
 				).slice(0, firstItemLength).map((node: Node) => node.cloneNode(true)));
 
-				loopFunctions.push([
+				updateFunctions.push([
 					path,
-					loopFunction,
-					getLoopElementsRange,
+					updateFunction,
+					getElementsRange,
 					firstItemFragment,
 				])
 
 				return [
-					loopFunction,
+					updateFunction,
 					startCommentIndex,
 					firstItemLength,
-					endCommentIndex,
+					itemLength,
 					...path,
 				];
 			},
@@ -174,36 +161,6 @@
 			},
 		}
 	};
-
-	// const _A_forLoop = (
-	// 	startCommentIndex: number,
-	// 	firstItemLength: number,
-	// 	endCommentIndex: number,
-	// 	...path: number[]
-	// ) => {
-
-	// 	const loopNodes = [..._A_getNode(...path).childNodes].slice(
-	// 		startCommentIndex + 1, endCommentIndex
-	// 	);
-	// 	const firstItemNodes = loopNodes.slice(0, firstItemLength);
-
-	// 	for (const node of loopNodes) {
-	// 		node.remove();
-	// 	}
-
-	// 	return (loopFunction: (generator: any) => void) => {
-	// 		loopFunction(
-	// 			(function* () {
-	// 				while (true) {
-	// 					yield ((value: number) => {
-	// 						console.log(value);
-	// 					});
-	// 				}
-	// 			})()
-	// 		)
-	// 	};
-
-	// };
 
 	{
 		let count = _A_createVariable(5);
@@ -243,7 +200,17 @@
 			count.$(...secondCount.$(() => count._ * secondCount._, 1, 4, 10));
 		}
 		{
-			count.f(...secondCount.f(
+			count.$$(...secondCount.$$(
+				(generator: any) => {
+					if (count._ > secondCount._) {
+						generator.next().value();
+					}
+				},
+				5, 1, 1, 1
+			));
+		}
+		{
+			count.$$(...secondCount.$$(
 				(generator: any) => {
 					for (let i: number = 2; i < count._ + secondCount._; i++) {
 						generator.next().value((setValueInFragment: any) => {
@@ -251,26 +218,9 @@
 						});
 					}
 				},
-				5, 1, 11, 1
+				8, 1, 5, 1
 			));
 		}
-		// {
-		// 	_A_forLoop(5, 1, 11, 1)((generator: any) => {
-		// 		for (let i = 0; i < count._; i++) {
-		// 			generator.next().value();
-		// 		}
-		// 		generator.return();
-		// 	});
-		// }
-		// {
-		// 	{
-		// 		count.$(...secondCount.$(() => {
-		// 			if (count._ > secondCount._) {
-		// 				_A_getNode(1, 5)
-		// 			}
-		// 		}));
-		// 	}
-		// }
 
 		count.$();
 		secondCount.$();

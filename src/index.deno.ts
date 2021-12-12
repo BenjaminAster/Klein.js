@@ -42,15 +42,14 @@ deno run --unstable --allow-read --allow-write --allow-net --no-check ../../src/
 	const bundle = (await rollup(options));
 	const output = await bundle.generate(options.output);
 	const javaScript: string = output.output[0].code;
-	const map: string = "data:application/javascript," + globalThis.encodeURI(
-		JSON.stringify({
-			...output.output[0].map,
-			sourcesContent: undefined,
-			sources: ["../$/.asterjs/script.ts"],
-			names: undefined,
-		})
-	);
+	const map: string = JSON.stringify({
+		version: 3,
+		mappings: output.output[0].map?.mappings,
+		sources: ["../$/.asterjs/script.ts"],
+		file: "./script.js",
+	})
 	await bundle.close();
 
-	await Deno.writeTextFile("../_/script.js", javaScript + "//# sourceMappingURL=" + map);
+	await Deno.writeTextFile("../_/script.js", javaScript + "//# sourceMappingURL=./script.js.map");
+	await Deno.writeTextFile("../_/script.js.map", map);
 })();
