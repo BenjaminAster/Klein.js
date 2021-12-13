@@ -25,17 +25,9 @@
 
 		const elementTree = recursiveElementTree(document.documentElement);
 
-		const reduceFunction = (path: number[]) => path.reduce(
+		return (...path: number[]) => path.reduce(
 			(tree: any, index: number) => tree?.[index], elementTree
-		);
-
-		return (...path: number[]): Node => {
-			if (path.length) {
-				return reduceFunction(path)?._;
-			} else {
-				return (...path: number[]) => reduceFunction(path);
-			}
-		};
+		)?._;
 	})();
 
 	const _A_createVariable = (initialValue: any) => {
@@ -46,16 +38,6 @@
 		let updateFunctions: ((generator: any) => any)[] = [];
 
 		const update = () => {
-			for (const [path, valueFunction] of values) {
-				const node = _A_getNode(...path);
-
-				if (node?.nodeName === "#comment") {
-
-				} else if (node) {
-					node.textContent = valueFunction();
-				}
-			}
-
 			for (const [
 				path,
 				updateFunction,
@@ -98,6 +80,14 @@
 
 				endComment.parentNode.insertBefore(fragment, endComment);
 			}
+
+			for (const [path, valueFunction] of values) {
+				const node = _A_getNode(...path);
+
+				if (node) {
+					node.textContent = valueFunction();
+				}
+			}
 		};
 
 		return {
@@ -115,7 +105,7 @@
 				itemLength: number,
 				...path: number[],
 			) {
-				const containerNodeObject = _A_getNode()(...path);
+				// const containerNodeObject = _A_getNode()(...path);
 
 				const getNodeIndex = ((node: Node): number => (
 					[...node.parentNode.childNodes].indexOf(node)
@@ -125,7 +115,7 @@
 					startCommentIndex,
 					startCommentIndex + itemLength + 1
 				].map(
-					(index: number, i: number) => (getNodeIndex(containerNodeObject[index]._) + 1 - i)
+					(index: number, i: number) => (getNodeIndex(_A_getNode(...path, index)) + 1 - i)
 				));
 
 				_A_getNode(...path, startCommentIndex).data = itemLength;
