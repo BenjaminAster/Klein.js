@@ -12,11 +12,11 @@ deno run --unstable --allow-read --allow-write --allow-net --no-check ../../src/
 */
 
 (async () => {
-	const typeScript: string = await Deno.readTextFile("./.asterjs/script.ts");
+	const typeScript: string = await Deno.readTextFile("./.kleinjs/script.ts");
 
 	const options: any = {
 		// input: "main",
-		input: "./.asterjs/script.ts",
+		input: "./.kleinjs/script.ts",
 		output: {
 			format: "es" as const,
 			sourcemap: true,
@@ -45,7 +45,7 @@ deno run --unstable --allow-read --allow-write --allow-net --no-check ../../src/
 	const map: string = JSON.stringify({
 		version: 3,
 		mappings: output.output[0].map?.mappings,
-		sources: ["../$/.asterjs/script.ts"],
+		sources: ["../$/.kleinjs/script.ts"],
 		file: "./script.js",
 	})
 	await bundle.close();
