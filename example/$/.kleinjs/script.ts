@@ -44,57 +44,55 @@
 		));
 
 		const update = () => {
-			const newItems = [];
+			// const newItems = [];
 
-			console.log("update", updateFunctions);
+			// for (const [
+			// 	path,
+			// 	updateFunction,
+			// 	getElementsRange,
+			// 	firstItemFragment,
+			// 	startCommentIndex,
+			// ] of updateFunctions) {
 
-			for (const [
-				path,
-				updateFunction,
-				getElementsRange,
-				firstItemFragment,
-				startCommentIndex,
-			] of updateFunctions) {
+			// 	const nodes = [..._K_getNode(...path).childNodes].slice(
+			// 		...getElementsRange()
+			// 	);
 
-				const nodes = [..._K_getNode(...path).childNodes].slice(
-					...getElementsRange()
-				);
+			// 	for (const node of nodes) {
+			// 		node.remove();
+			// 	}
 
-				for (const node of nodes) {
-					node.remove();
-				}
+			// 	const fragment = new DocumentFragment();
 
-				const fragment = new DocumentFragment();
+			// 	const currentItems = items.filter(
+			// 		([path]) => console.log(path),
+			// 	);
 
-				const currentItems = items.filter(
-					([path]) => console.log(path),
-				);
+			// 	updateFunction(
+			// 		(function* () {
+			// 			while (true) {
+			// 				yield ((fragmentFunction?: (setValueInFragment: any) => any) => {
+			// 					const itemFragment = firstItemFragment.cloneNode(true);
+			// 					fragmentFunction?.(
+			// 						(value: any, ...fragmentPath: number[]) => {
+			// 							fragmentPath.reduce(
+			// 								(fragment: any, index: number) => fragment?.childNodes?.[index],
+			// 								itemFragment
+			// 							).textContent = value;
+			// 						}
+			// 					);
+			// 					fragment.append(itemFragment);
+			// 				});
+			// 			}
+			// 		})()
+			// 	);
 
-				updateFunction(
-					(function* () {
-						while (true) {
-							yield ((fragmentFunction?: (setValueInFragment: any) => any) => {
-								const itemFragment = firstItemFragment.cloneNode(true);
-								fragmentFunction?.(
-									(value: any, ...fragmentPath: number[]) => {
-										fragmentPath.reduce(
-											(fragment: any, index: number) => fragment?.childNodes?.[index],
-											itemFragment
-										).textContent = value;
-									}
-								);
-								fragment.append(itemFragment);
-							});
-						}
-					})()
-				);
+			// 	const endComment: Node = _K_getNode(...path).childNodes[
+			// 		getElementsRange()[1]
+			// 	];
 
-				const endComment: Node = _K_getNode(...path).childNodes[
-					getElementsRange()[1]
-				];
-
-				endComment.parentNode.insertBefore(fragment, endComment);
-			}
+			// 	endComment.parentNode.insertBefore(fragment, endComment);
+			// }
 
 			// for (const [
 			// 	path,
@@ -110,6 +108,39 @@
 			// 		comment.parentNode.childNodes[commentIndex + 1 + itemPath[0]]
 			// 	)
 			// }
+
+			{
+				for (const [
+					path,
+					updateFunction,
+					startCommentIndex,
+					firstItemFragment,
+					endCommentIndex,
+				] of updateFunctions) {
+					for (const node of [..._K_getNode(...path).childNodes].slice(
+						getNodeIndex(_K_getNode(...path, startCommentIndex)) + 1,
+						getNodeIndex(_K_getNode(...path, endCommentIndex)),
+					)) {
+						node.remove();
+					}
+
+					const fragment: DocumentFragment = new DocumentFragment();
+
+					updateFunction(
+						(function* () {
+							let i: number = 0;
+							while (true) {
+								const itemFragment = firstItemFragment.cloneNode(true);
+								fragment.append(itemFragment);
+
+								yield i++;
+							}
+						})()
+					);
+
+					_K_getNode(...path).insertBefore(fragment, _K_getNode(...path, endCommentIndex));
+				}
+			}
 
 			for (const [path, valueFunction] of values) {
 				const node = _K_getNode(...path);
@@ -128,45 +159,57 @@
 				param2?: number,
 				param3?: number,
 			) {
-				(() => {
+				if (!path) update();
+				else if (!param1) values.push([path, updateFunction]);
+				else {
+					// param1: startCommentIndex
+					// param2: firstItemLength
+					// param3: itemLength
 
-					if (!path) return update();
-
-					if (!param1) {
-						values.push([path, updateFunction]);
-
-						return;
-					}
-
-					if (!param2) {
-						items.push([path, updateFunction, param1]);
-
-						return;
-					}
-
-					const getElementsRange = () => ([
-						param1,
-						param1 + param3 + 1
-					].map(
-						(index: number, i: number) => (getNodeIndex(_K_getNode(...path, index)) + 1 - i)
-					));
-
-					_K_getNode(...path, param1).data = param3;
-
-					const firstItemFragment: DocumentFragment = new DocumentFragment();
+					let firstItemFragment: DocumentFragment = new DocumentFragment();
 
 					firstItemFragment.append(...[..._K_getNode(...path).childNodes].slice(
-						...getElementsRange()
-					).slice(0, param2).map((node: Node) => node.cloneNode(true)));
+						param1 + 1,
+						param1 + 1 + param2,
+					).map((node: Node) => node.cloneNode(true)));
 
 					updateFunctions.push([
 						path,
 						updateFunction,
-						getElementsRange,
-						firstItemFragment,
 						param1,
+						firstItemFragment,
+						param1 + 1 + (param3 || param2),
 					]);
-				})();
+				}
+
+				// if (!param2) {
+				// 	items.push([path, updateFunction, param1]);
+
+				// 	return;
+				// }
+
+				// const getElementsRange = () => ([
+				// 	param1,
+				// 	param1 + param3 + 1
+				// ].map(
+				// 	(index: number, i: number) => (getNodeIndex(_K_getNode(...path, index)) + 1 - i)
+				// ));
+
+				// _K_getNode(...path, param1).data = param3;
+
+				// const firstItemFragment: DocumentFragment = new DocumentFragment();
+
+				// firstItemFragment.append(...[..._K_getNode(...path).childNodes].slice(
+				// 	...getElementsRange()
+				// ).slice(0, param2).map((node: Node) => node.cloneNode(true)));
+
+				// updateFunctions.push([
+				// 	path,
+				// 	updateFunction,
+				// 	getElementsRange,
+				// 	firstItemFragment,
+				// 	param1,
+				// ]);
 
 				return [
 					path,
@@ -229,10 +272,10 @@
 				[1],
 				(generator: any) => {
 					if (count._ > secondCount._) {
-						generator.next().value();
+						generator.next().value;
 					}
 				},
-				5, 1, 1
+				5, 1
 			));
 		}
 		{
@@ -240,11 +283,13 @@
 				[1],
 				(generator: any) => {
 					for (let i: number = 2; i < secondCount._ + 10; i++) {
-						count.$([1, 8], () => count._, 1);
+						const _K_index_asdf123: number = generator.next().value;
 
-						generator.next().value((setValueInFragment: any) => {
-							setValueInFragment(i, 0, 2);
-						});
+						// count.$([1, 8], () => count._, 1);
+
+						// generator.next().value((setValueInFragment: any) => {
+						// 	setValueInFragment(i, 0, 2);
+						// });
 					}
 				},
 				8, 1, 5
