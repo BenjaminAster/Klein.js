@@ -4,9 +4,9 @@
 <meta name="color-scheme" content="dark light" />
 
 <style>
-	html, body, a {
-		all: initial;
-		font-family: system-ui;
+	body, a {
+		color: revert;
+		background-color: revert;
 	}
 </style>
 
