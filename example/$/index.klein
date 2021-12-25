@@ -1,13 +1,13 @@
 
+// This Klein.js file would be the actual and only file that the programmer would write.
+
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="color-scheme" content="dark" />
 		<style> body { font-family: system-ui; } </style>
-		<title>Aster.js 2 Test</title>
-
-		<script defer="defer" type="module" src="./script.js"></script>
+		<title>Klein.js Test</title>
 	</head>
 
 	<body>
@@ -40,6 +40,13 @@
 
 		for (let i: number = 2; i < count + secondCount; i++) {
 			<div> &bull; {i} ({count + secondCount}).</div>
+		}
+
+		<p>this <code>&lt;p&gt;</code> is after the for-loop.</p>
+		
+		if (count > 10) {
+			<p>The first counter is greater than 10.</p>
+			<p>And here is another paragraph inside the if statement.</p>
 		}
 	</body>
 </html>
