@@ -2,13 +2,7 @@
 # Klein.js
 
 <meta name="color-scheme" content="dark light" />
-
-<style>
-	body, a {
-		color: revert;
-		background-color: revert;
-	}
-</style>
+<link rel="stylesheet" href="data:text/css;charset=utf-8, body, a { color: revert; background-color: revert; }" />
 
 | ⚠ This is still in VERY early development. At this moment, it is still in brainstorming phase and so far, there is only a concept of how it should work, but the framework itself doesn't exist yet.
 | -
