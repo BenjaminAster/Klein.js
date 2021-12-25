@@ -1,7 +1,7 @@
 
 ### Klein.js
 
-| ⚠ This is still in VERY early development. So far, there is only a concept of how it should work, but the framework itself doesn't exist yet.
+| ⚠ This is still in VERY early development. At this moment, it is still in brainstorming phase and so far, there is only a concept of how it should work, but the framework itself doesn't exist yet.
 | -
 
 A JavaScript framework completely different from what you have ever seen before.
