@@ -12,7 +12,7 @@
 
 	<body>
 		let count: number = 5;
-		let secondCount: number = 10;
+		let secondCount: number = 0;
 
 		<button on:click={() => count++}>
 			# Increase first counter ({count})
@@ -38,12 +38,12 @@
 			<p>The first count is greater than the second count.</p>
 		}
 
-		for (let i: number = 2; i < count + secondCount; i++) {
+		for (let i: number = 2; i < secondCount + 10; i++) {
 			<div> &bull; {i} ({count + secondCount}).</div>
 		}
 
 		<p>this <code>&lt;p&gt;</code> is after the for-loop.</p>
-		
+
 		if (count > 10) {
 			<p>The first counter is greater than 10.</p>
 			<p>And here is another paragraph inside the if statement.</p>
