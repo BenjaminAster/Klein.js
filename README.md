@@ -1,4 +1,6 @@
 
+<meta name="color-scheme" content="dark light" />
+
 ### Klein.js
 
 | ⚠ This is still in VERY early development. At this moment, it is still in brainstorming phase and so far, there is only a concept of how it should work, but the framework itself doesn't exist yet.
